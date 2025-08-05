@@ -1,11 +1,14 @@
-#Numpy is a 3rd-party module that has some stuff for maths
+# Numpy is a 3rd-party module that has some stuff for maths
 import numpy as np
-#unittest is a module that is useful for unit testing
+# unittest is a module that is useful for unit testing
 import unittest
+# Numba is a 3rd-party module that is used for easy parallelisation
+from numba import njit
 
 #############################################################
 # calc_pi:
-# Implements a Monte-Carlo approach to calculate pi
+# Implements a serial processing Monte-Carlo approach to
+# calculate pi
 #
 # i.e. it creates looks at the positive quadrant of a unit
 # circle in a unit square and each loop checks whether a
@@ -21,7 +24,7 @@ import unittest
 # pi_collection_rate = The amount of iterations between 
 #               storing the current value of pi
 #############################################################
-def calc_pi(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
+def calc_pi_serial(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
     # Sets the RNG's seed
     np.random.seed(seed)
 
@@ -37,6 +40,66 @@ def calc_pi(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
         # Checks if the randomly generated 2d point is inside
         # the unit circle finding the magnitude of the vector
         if np.linalg.norm(np.random.rand(2)) < 1:
+            num_in_circle += 1
+
+        # Checks if current number of iterations is a multiple
+        # of the pi_collection_rate
+        if i%pi_collection_rate == 0:
+            # Uses the ratio of points in the unit circle to total
+            # number of points to get a value for pi and stores it
+            pi_values[num_pi_stored] = 4*num_in_circle/i
+            num_pi_stored += 1
+
+    # Uses the ratio of points in the unit circle to total
+    # number of points to get a value for pi
+    pi = 4*num_in_circle/num_samples
+    
+    return pi, pi_values
+
+#############################################################
+# calc_pi_parallel:
+# Implements a parallel processing Monte-Carlo approach to
+# calculate pi
+#
+# i.e. it creates looks at the positive quadrant of a unit
+# circle in a unit square and each loop checks whether a
+# normal uniformly randomly generated 2d point is inside
+# the circle or outside of it, and then uses the ratio of
+# the number of points in the circle to the total amount
+# of points sampled to get a value of pi
+#
+# num_samples = Specifies how many data points are sampled
+# seed        = Specifies the random number generator's 
+#               so that the results are repeatable and
+#               seed reproducable
+# pi_collection_rate = The amount of iterations between 
+#               storing the current value of pi
+#############################################################
+@njit
+def calc_pi(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
+    # Sets the RNG's seed
+    np.random.seed(seed)
+
+    # Sets the initial amount of points in the circle to 0
+    num_in_circle = 0
+
+    # Stores previous values of pi
+    pi_values  = np.zeros(int(num_samples//pi_collection_rate))
+    num_pi_stored = 0
+
+    # Takes a number of samples = num_samples
+    for i in range(1, int(num_samples)+1):
+        # Generates 2 uniformly pseudo-randomly distributed
+        # numbers which represent a 2D point inside the unit
+        # circle.
+        x = np.random.rand()
+        y = np.random.rand()
+        
+        # Checks if those points are inside the unit circle
+        # by finding the square magnitude of the vector
+        # (there's no point finding the sqrt as numbers < 1
+        # will remain < 1, and numbers > 1 will remain > 1)
+        if (x**2 + y**2) < 1:
             num_in_circle += 1
 
         # Checks if current number of iterations is a multiple
@@ -132,35 +195,52 @@ class Test_Pi_Calculation(unittest.TestCase):
     # A basic test to see that the returned values of pi #
     # are outputting the expected values                 #
     def test_calc_pi_basic(self):
-        pi, pi_values = calc_pi(num_samples=1000, seed=42)
+        for i in range(2):
+            # Checks both serial
+            if i == 0:
+                pi, pi_values = calc_pi_serial(num_samples=1000, seed=42)
+            # And parallel versions of calc_pi
+            else:
+                pi, pi_values = calc_pi(num_samples=1000, seed=42)
 
-        # Testing to see whether the outputted value of pi
-        # is within a very wide range (between 2.5 and 4)
-        self.assertTrue(2.5 < pi < 4.0)
+            # Testing to see whether the outputted value of pi
+            # is within a very wide range (between 2.5 and 4)
+            self.assertTrue(2.5 < pi < 4.0)
 
-        # Testing to see that with a sample rate = 1000
-        # and a number of samples = 1000, that the
-        # returned pi_values array only outputs
-        # 1 value of pi
-        self.assertEqual(len(pi_values), 1)
+            # Testing to see that with a sample rate = 1000
+            # and a number of samples = 1000, that the
+            # returned pi_values array only outputs
+            # 1 value of pi
+            self.assertEqual(len(pi_values), 1)
         
     # Tests that calc_pi returns consistent results with same seed #
     def test_calc_pi_with_seed(self):
-        pi1, _ = calc_pi(num_samples=1000, seed=123)
-        pi2, _ = calc_pi(num_samples=1000, seed=123)
+        pi1, _ = calc_pi_serial(num_samples=1000, seed=123)
+        pi2, _ = calc_pi_serial(num_samples=1000, seed=123)
+        pi3, _ = calc_pi(num_samples=1000, seed=123)
+        pi4, _ = calc_pi(num_samples=1000, seed=123)
 
-        # Testing that both values of returned pi are equal
+        # Testing that all values of returned pi are equal
         self.assertEqual(pi1, pi2)
+        self.assertEqual(pi2, pi3)
+        self.assertEqual(pi3, pi4)
         
     # Tests that pi_values has correct length based on collection rate #
     def test_calc_pi_collection_rate(self):
         num_samples = 10000
         pi_collection_rate = 500
-        _, pi_values = calc_pi(num_samples=num_samples, pi_collection_rate=pi_collection_rate)
         expected_length = num_samples // pi_collection_rate
 
-        # Tests the length = the expected length
-        self.assertEqual(len(pi_values), expected_length)
+        for i in range(2):
+            # Checks both serial
+            if i == 0:
+                _, pi_values = calc_pi_serial(num_samples=num_samples, pi_collection_rate=pi_collection_rate)
+            # And parallel versions of calc_pi
+            else:
+                _, pi_values = calc_pi(num_samples=num_samples, pi_collection_rate=pi_collection_rate)
+
+            # Tests the length = the expected length
+            self.assertEqual(len(pi_values), expected_length)
         
     # Tests display_difference calculation (though it prints) #
     def test_display_difference(self):
@@ -204,6 +284,24 @@ class Test_Pi_Calculation(unittest.TestCase):
         self.assertIn("Calculated value of pi after 1000 samples = 3.14000...", output)
         self.assertIn("Difference between pi and calculated value of pi:", output)
 
+#############################################################
+# parallel_vs_serial_benchmark:
+# Times the difference between the calc_pi with and without
+# parallelisation (using njit)
+#############################################################
+def parallel_vs_serial_benchmark():
+    import time
+    start = time.time()
+    calc_pi(1e7)
+    print("With Numba:", time.time() - start)
+
+    from calculating_pi import calc_pi as calc_pi_nojit  # remove @njit before import
+
+    start = time.time()
+    calc_pi_serial(1e7)
+    
+    print("Without Numba:", time.time() - start)
+
 # Only runs the following if this file is directly being run
 # Rather than if it's being used as a module
 if __name__ == "__main__":
@@ -221,7 +319,7 @@ if __name__ == "__main__":
     pi_collection_rate = 1e3
 
     # Calulates pi by using a Monte-Carlo approach
-    pi, pi_values = calc_pi(num_samples=num_samples, seed=seed)
+    pi, pi_values = calc_pi(num_samples=num_samples, seed=seed, pi_collection_rate=pi_collection_rate)
 
     # Outputs the results to the console
     output_results(pi, pi_values, num_samples, seed, pi_collection_rate)
