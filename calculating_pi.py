@@ -295,8 +295,6 @@ def parallel_vs_serial_benchmark():
     calc_pi(1e7)
     print("With Numba:", time.time() - start)
 
-    from calculating_pi import calc_pi as calc_pi_nojit  # remove @njit before import
-
     start = time.time()
     calc_pi_serial(1e7)
     
