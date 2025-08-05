@@ -82,22 +82,30 @@ def evaluate_results(pi, num_samples_used = -1):
     print("Difference between pi and calculated value of pi:")
     display_difference(np.pi, pi)
 
-############################################################# (Need to finish description)
+#############################################################
 # output_results:
 # Evalutes and displays pi vs the calculated value of pi
 #
-# pi               = the inputted calculated value of pi
-# num_samples_used = how many samples were used to get
-#                    the calculated value of pi
+# pi          = the inputted calculated value of pi
+# pi_values   = holds stored values of pi
+# num_samples = how many total samples which will be
+#               used to get the calculated value of pi
+# seed        = Specifies the random number generator's 
+#               so that the results are repeatable and
+#               seed reproducable
+# pi_collection_rate = The amount of samples between storing 
+#                      the current value of calculated pi
+# tilde_length       = Speficies how long the outputted
+#                      tildes (~) are.
 #############################################################
-def output_results(pi, pi_values, num_samples, seed, pi_collection_rate, squiggle_length = 60):
+def output_results(pi, pi_values, num_samples, seed, pi_collection_rate, tilde_length = 60):
     print("Calculating pi using a Monte-Carlo approach:")
-    print("~"*squiggle_length)
+    print("~"*tilde_length)
     print("Initial variables:")
     print(f"Max number of samples = {num_samples:,.0f}")
     print(f"RNG seed              = {seed:,}")
     print(f"The amount of samples between storing the current value of \n\tcalculated pi = {pi_collection_rate:,.0f}")
-    print("~"*squiggle_length)
+    print("~"*tilde_length)
     print(f"Actual value of pi = {np.pi}\n")
 
     # Evalutes and displays pi vs the calculated values of pi
@@ -114,31 +122,44 @@ def output_results(pi, pi_values, num_samples, seed, pi_collection_rate, squiggl
     # Evalutes and displays pi vs the final calculated value of pi
     evaluate_results(pi)
 
-    print("~"*squiggle_length)
+    print("~"*tilde_length)
 
-############################################################# (Need to comment)
+#############################################################
 # Test_Pi_Calculation:
 # A class that contains all the unit tests
 #############################################################
 class Test_Pi_Calculation(unittest.TestCase):
-    # Tests that calc_pi returns values in the expected range #
+    # A basic test to see that the returned values of pi #
+    # are outputting the expected values                 #
     def test_calc_pi_basic(self):
         pi, pi_values = calc_pi(num_samples=1000, seed=42)
+
+        # Testing to see whether the outputted value of pi
+        # is within a very wide range (between 2.5 and 4)
         self.assertTrue(2.5 < pi < 4.0)
+
+        # Testing to see that with a sample rate = 1000
+        # and a number of samples = 1000, that the
+        # returned pi_values array only outputs
+        # 1 value of pi
         self.assertEqual(len(pi_values), 1)
         
     # Tests that calc_pi returns consistent results with same seed #
     def test_calc_pi_with_seed(self):
         pi1, _ = calc_pi(num_samples=1000, seed=123)
         pi2, _ = calc_pi(num_samples=1000, seed=123)
+
+        # Testing that both values of returned pi are equal
         self.assertEqual(pi1, pi2)
         
     # Tests that pi_values has correct length based on collection rate #
     def test_calc_pi_collection_rate(self):
         num_samples = 10000
-        collection_rate = 500
-        _, pi_values = calc_pi(num_samples=num_samples, pi_collection_rate=collection_rate)
-        expected_length = num_samples // collection_rate
+        pi_collection_rate = 500
+        _, pi_values = calc_pi(num_samples=num_samples, pi_collection_rate=pi_collection_rate)
+        expected_length = num_samples // pi_collection_rate
+
+        # Tests the length = the expected length
         self.assertEqual(len(pi_values), expected_length)
         
     # Tests display_difference calculation (though it prints) #
@@ -146,16 +167,19 @@ class Test_Pi_Calculation(unittest.TestCase):
         import io
         import sys
         
-        # Capture print output
+        # Sets it to listen for print statment output
         captured_output = io.StringIO()
         sys.stdout = captured_output
         
         display_difference(10.0, 10.5)
+
+        # Stores what the print statments outputted
         output = captured_output.getvalue()
         
-        # Restore stdout
+        # Restores it to output to the standard output
         sys.stdout = sys.__stdout__
         
+        # Tests that the printed output is what we'd expect it to be
         self.assertIn("Absolute difference   = 5.00e-01", output)
         self.assertIn("Percentage difference = 5.00000%", output)
         
@@ -164,16 +188,19 @@ class Test_Pi_Calculation(unittest.TestCase):
         import io
         import sys
         
-        # Capture print output
+        # Sets it to listen for print statment output
         captured_output = io.StringIO()
         sys.stdout = captured_output
         
         evaluate_results(3.14, 1000)
+
+        # Stores what the print statments outputted
         output = captured_output.getvalue()
         
         # Restore stdout
         sys.stdout = sys.__stdout__
         
+        # Tests that the printed output is what we'd expect it to be
         self.assertIn("Calculated value of pi after 1000 samples = 3.14000...", output)
         self.assertIn("Difference between pi and calculated value of pi:", output)
 
