@@ -1,6 +1,7 @@
 import numpy as np
 import unittest
 from mpi4py import MPI
+import time
 
 def calc_pi(num_samples = 1e5, seed = 12345):
     """
@@ -77,7 +78,7 @@ class Test_Pi_Calculation(unittest.TestCase):
     def test_calc_pi_basic(self):
         """
         A basic test to see that the returned values of pi
-        are outputting the expected values                 
+        are outputting values in the expected range                 
         """
         pi, rank = calc_pi(num_samples=1000, seed=42)
         
@@ -96,9 +97,6 @@ class Test_Pi_Calculation(unittest.TestCase):
             self.assertEqual(pi1, pi2)
 
 if __name__ == "__main__":
-    #comm = MPI.COMM_WORLD
-    #rank = comm.Get_rank()
-    
     """
     Inputs:
     num_samples = Specifies how many data points are sampled.
@@ -109,10 +107,11 @@ if __name__ == "__main__":
     num_samples = 1e5
     seed        = 12345
 
-    # Calulates pi by using a Monte-Carlo approach
+    start = time.time()
     pi, rank = calc_pi(num_samples=num_samples, seed=seed)
 
     if rank == 0:
+        print(f"Elapsed = {time.time() - start:.4f} s")
         # Outputs the results to the console
         output_results(pi, num_samples, seed)
 

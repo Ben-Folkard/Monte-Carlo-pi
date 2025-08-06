@@ -1,13 +1,11 @@
 import numpy as np
 import unittest
-from numba import njit
 import time
 
-@njit
 def calc_pi(num_samples = 1e5, seed = 12345):
     """
-    Implements a parallel processing Monte-Carlo approach to
-    calculate pi (using njit)
+    Implements a serial processing Monte-Carlo approach to
+    calculate pi
     
     i.e. it creates looks at the positive quadrant of a unit
     circle in a unit square and each loop checks whether a
@@ -109,11 +107,7 @@ if __name__ == "__main__":
 
     start = time.time()
     pi = calc_pi(num_samples=num_samples, seed=seed)
-    print(f"Elapsed (with compilation) = {time.time() - start:.4f} s")
-
-    start = time.time()
-    pi = calc_pi(num_samples=num_samples, seed=seed)
-    print(f"Elapsed (without compilation) = {time.time() - start:.4f} s")
+    print(f"Elapsed = {time.time() - start:.4f} s")
 
     # Outputs the results to the console
     output_results(pi, num_samples, seed)
