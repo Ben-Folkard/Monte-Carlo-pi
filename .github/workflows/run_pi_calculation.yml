@@ -1,0 +1,35 @@
+name: Run Pi Calculation
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_samples:
+        description: "Number of samples"
+        required: true
+        default: "100000"
+      seed:
+        description: "Random seed"
+        required: true
+        default: "12345"
+
+jobs:
+  run-pi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: pip install numpy
+
+      - name: Run calculation
+        run: |
+          python calculating_pi_serial_action_runnable.py \
+            --num_samples ${{ github.event.inputs.num_samples }} \
+            --seed ${{ github.event.inputs.seed }}
