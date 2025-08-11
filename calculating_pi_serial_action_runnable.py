@@ -119,8 +119,8 @@ if __name__ == "__main__":
     output_results(pi, num_samples, seed)
 
     # Run the unit tests
-    print("\nRunning unit tests...")
-    unittest.main()
+    #print("\nRunning unit tests...")
+    #unittest.main()
 
     # Alternative unittest syntaxes #
 
