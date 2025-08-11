@@ -2,23 +2,24 @@ import numpy as np
 import unittest
 from numba import njit
 
-def calc_pi_serial(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
+
+def calc_pi_serial(num_samples=1e5, seed=12345, pi_collection_rate=1e3):
     """
     Implements a serial processing Monte-Carlo approach to
     calculate pi
-    
+
     i.e. it creates looks at the positive quadrant of a unit
     circle in a unit square and each loop checks whether a
     normal uniformly randomly generated 2d point is inside
     the circle or outside of it, and then uses the ratio of
     the number of points in the circle to the total amount
     of points sampled to get a value of pi
-    
+
     num_samples = Specifies how many data points are sampled
-    seed        = Specifies the random number generator's 
+    seed        = Specifies the random number generator's
                   so that the results are repeatable and
                   seed reproducable
-    pi_collection_rate = The amount of iterations between 
+    pi_collection_rate = The amount of iterations between
                   storing the current value of pi
     """
     # Sets the RNG's seed
@@ -28,11 +29,11 @@ def calc_pi_serial(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
     num_in_circle = 0
 
     # Stores previous values of pi
-    pi_values  = np.zeros(int(num_samples//pi_collection_rate))
+    pi_values = np.zeros(int(num_samples // pi_collection_rate))
     num_pi_stored = 0
 
     # Takes a number of samples = num_samples
-    for i in range(1, int(num_samples)+1):
+    for i in range(1, int(num_samples) + 1):
         # Checks if the randomly generated 2d point is inside
         # the unit circle finding the magnitude of the vector
         if np.linalg.norm(np.random.rand(2)) < 1:
@@ -40,32 +41,33 @@ def calc_pi_serial(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
 
         # Checks if current number of iterations is a multiple
         # of the pi_collection_rate
-        if i%pi_collection_rate == 0:
-            pi_values[num_pi_stored] = 4*num_in_circle/i
+        if i % pi_collection_rate == 0:
+            pi_values[num_pi_stored] = 4 * num_in_circle / i
             num_pi_stored += 1
 
-    pi = 4*num_in_circle/num_samples
-    
+    pi = 4 * num_in_circle / num_samples
+
     return pi, pi_values
 
+
 @njit
-def calc_pi(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
+def calc_pi(num_samples=1e5, seed=12345, pi_collection_rate=1e3):
     """
     Implements a parallel processing Monte-Carlo approach to
     calculate pi
-    
+
     i.e. it creates looks at the positive quadrant of a unit
     circle in a unit square and each loop checks whether a
     normal uniformly randomly generated 2d point is inside
     the circle or outside of it, and then uses the ratio of
     the number of points in the circle to the total amount
     of points sampled to get a value of pi
-    
+
     num_samples = Specifies how many data points are sampled
-    seed        = Specifies the random number generator's 
+    seed        = Specifies the random number generator's
                   so that the results are repeatable and
                   seed reproducable
-    pi_collection_rate = The amount of iterations between 
+    pi_collection_rate = The amount of iterations between
                   storing the current value of pi
     """
     # Sets the RNG's seed
@@ -75,17 +77,17 @@ def calc_pi(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
     num_in_circle = 0
 
     # Stores previous values of pi
-    pi_values  = np.zeros(int(num_samples//pi_collection_rate))
+    pi_values = np.zeros(int(num_samples // pi_collection_rate))
     num_pi_stored = 0
 
     # Takes a number of samples = num_samples
-    for i in range(1, int(num_samples)+1):
+    for i in range(1, int(num_samples) + 1):
         # Generates 2 uniformly pseudo-randomly distributed
         # numbers which represent a 2D point inside the unit
         # circle.
         x = np.random.rand()
         y = np.random.rand()
-        
+
         # Checks if those points are inside the unit circle
         # by finding the square magnitude of the vector
         # (there's no point finding the sqrt as numbers < 1
@@ -95,66 +97,77 @@ def calc_pi(num_samples = 1e5, seed = 12345, pi_collection_rate = 1e3):
 
         # Checks if current number of iterations is a multiple
         # of the pi_collection_rate
-        if i%pi_collection_rate == 0:
-            pi_values[num_pi_stored] = 4*num_in_circle/i
+        if i % pi_collection_rate == 0:
+            pi_values[num_pi_stored] = 4 * num_in_circle / i
             num_pi_stored += 1
 
     # Uses the ratio of points in the unit circle to total
     # number of points to get a value for pi
-    pi = 4*num_in_circle/num_samples
-    
+    pi = 4 * num_in_circle / num_samples
+
     return pi, pi_values
 
+
 def display_difference(original_value, new_value):
-    diff = new_value-original_value
+    diff = new_value - original_value
     print(f"\tAbsolute difference   = {diff:.2e}")
-    percentage_diff = diff/original_value
+    percentage_diff = diff / original_value
     print(f"\tPercentage difference = {percentage_diff:.5%}")
 
-def evaluate_results(pi, num_samples_used = -1):
+
+def evaluate_results(pi, num_samples_used=-1):
     # Checks if the num_samples_used is the final amount
     if num_samples_used == -1:
         print(f"Final calculated value of pi = {pi}")
-    # Or just one of the intermediary steps  
+    # Or just one of the intermediary steps
     else:
-        print(f"Calculated value of pi after {num_samples_used:.0f} samples = {pi:.5f}...")
+        print(
+            f"Calculated value of pi after {num_samples_used:.0f} samples = {pi:.5f}..."
+        )
     print("Difference between pi and calculated value of pi:")
     display_difference(np.pi, pi)
 
-def output_results(pi, pi_values, num_samples, seed, pi_collection_rate, tilde_length = 60):
+
+def output_results(
+    pi, pi_values, num_samples, seed, pi_collection_rate, tilde_length=60
+):
     print("Calculating pi using a Monte-Carlo approach:")
-    print("~"*tilde_length)
+    print("~" * tilde_length)
     print("Initial variables:")
     print(f"Max number of samples = {num_samples:,.0f}")
     print(f"RNG seed              = {seed:,}")
-    print(f"The amount of samples between storing the current value of \n\tcalculated pi = {pi_collection_rate:,.0f}")
-    print("~"*tilde_length)
+    print(
+        f"The amount of samples between storing the current value of \n\tcalculated pi = {pi_collection_rate:,.0f}"
+    )
+    print("~" * tilde_length)
     print(f"Actual value of pi = {np.pi}\n")
 
     # Evalutes and displays pi vs the calculated values of pi
-    for i, value in enumerate(pi_values):       
-        evaluate_results(value, num_samples_used=(i+1)*pi_collection_rate)
+    for i, value in enumerate(pi_values):
+        evaluate_results(value, num_samples_used=(i + 1) * pi_collection_rate)
 
         # If it isn't the first value of calculated pi:
         if i != 0:
             print("Difference from the previous value:")
-            display_difference(value, pi_values[i-1])
+            display_difference(value, pi_values[i - 1])
 
         print()
 
     # Evalutes and displays pi vs the final calculated value of pi
     evaluate_results(pi)
 
-    print("~"*tilde_length)
+    print("~" * tilde_length)
+
 
 class Test_Pi_Calculation(unittest.TestCase):
     """
     This class contains the unit tests
     """
+
     def test_calc_pi_basic(self):
         """
         A basic test to see that the returned values of pi
-        are outputting the expected values                 
+        are outputting the expected values
         """
         pi, pi_values = calc_pi_serial(num_samples=1000, seed=42)
 
@@ -179,7 +192,7 @@ class Test_Pi_Calculation(unittest.TestCase):
         self.assertEqual(pi1, pi2)
         self.assertEqual(pi2, pi3)
         self.assertEqual(pi3, pi4)
-        
+
     def test_calc_pi_collection_rate(self):
         """
         Tests that pi_values has correct length based on collection rate
@@ -188,11 +201,16 @@ class Test_Pi_Calculation(unittest.TestCase):
         pi_collection_rate = 500
         expected_length = num_samples // pi_collection_rate
 
-        _, pi_values = calc_pi_serial(num_samples=num_samples, pi_collection_rate=pi_collection_rate)
+        _, pi_values = calc_pi_serial(
+            num_samples=num_samples, pi_collection_rate=pi_collection_rate
+        )
         self.assertEqual(len(pi_values), expected_length)
 
-        _, pi_values = calc_pi(num_samples=num_samples, pi_collection_rate=pi_collection_rate)
+        _, pi_values = calc_pi(
+            num_samples=num_samples, pi_collection_rate=pi_collection_rate
+        )
         self.assertEqual(len(pi_values), expected_length)
+
 
 def parallel_vs_serial_benchmark():
     """
@@ -200,14 +218,16 @@ def parallel_vs_serial_benchmark():
     parallelisation (using njit)
     """
     import time
+
     start = time.time()
     calc_pi(1e7)
     print("With Numba:", time.time() - start)
 
     start = time.time()
     calc_pi_serial(1e7)
-    
+
     print("Without Numba:", time.time() - start)
+
 
 if __name__ == "__main__":
     """
@@ -216,15 +236,17 @@ if __name__ == "__main__":
     seed        = Specifies the random number generator's seed
                   so that the results are repeatable and
                   reproducable
-    pi_collection_rate = The amount of samples between storing 
+    pi_collection_rate = The amount of samples between storing
                          the current value of calculated pi
     """
     num_samples = 1e5
-    seed        = 12345
+    seed = 12345
     pi_collection_rate = 1e3
 
     # Calulates pi by using a Monte-Carlo approach
-    pi, pi_values = calc_pi(num_samples=num_samples, seed=seed, pi_collection_rate=pi_collection_rate)
+    pi, pi_values = calc_pi(
+        num_samples=num_samples, seed=seed, pi_collection_rate=pi_collection_rate
+    )
 
     # Outputs the results to the console
     output_results(pi, pi_values, num_samples, seed, pi_collection_rate)
@@ -235,8 +257,8 @@ if __name__ == "__main__":
 
     # Alternative unittest syntaxes #
 
-    #unittest.main(argv=['first-arg-is-ignored'], exit=False)
+    # unittest.main(argv=['first-arg-is-ignored'], exit=False)
 
-    #runner = unittest.TextTestRunner()
-    #suite = unittest.TestLoader().loadTestsFromTestCase(Test_Pi_Calculation)
-    #runner.run(suite)
+    # runner = unittest.TextTestRunner()
+    # suite = unittest.TestLoader().loadTestsFromTestCase(Test_Pi_Calculation)
+    # runner.run(suite)
