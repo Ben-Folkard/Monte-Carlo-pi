@@ -6,6 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath(".."))
+
 project = 'Monte-Carlo-pi'
 copyright = '2025, Ben-Folkard'
 author = 'Ben-Folkard'
@@ -13,7 +17,11 @@ author = 'Ben-Folkard'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.todo",
+]
 
 templates_path = ['_templates']
 exclude_patterns = []

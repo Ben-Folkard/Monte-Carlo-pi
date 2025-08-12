@@ -1,0 +1,238 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>calculating_pi_serial &mdash; Monte-Carlo-pi  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Monte-Carlo-pi
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Monte-Carlo-pi</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">calculating_pi_serial</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for calculating_pi_serial</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<div class="viewcode-block" id="calc_pi">
+<a class="viewcode-back" href="../api/index.html#calculating_pi_serial.calc_pi">[docs]</a>
+<span class="k">def</span> <span class="nf">calc_pi</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implements a serial processing Monte-Carlo approach to</span>
+<span class="sd">    calculate pi</span>
+
+<span class="sd">    i.e. it creates looks at the positive quadrant of a unit</span>
+<span class="sd">    circle in a unit square and each loop checks whether a</span>
+<span class="sd">    normal uniformly randomly generated 2d point is inside</span>
+<span class="sd">    the circle or outside of it, and then uses the ratio of</span>
+<span class="sd">    the number of points in the circle to the total amount</span>
+<span class="sd">    of points sampled to get a value of pi</span>
+
+<span class="sd">    num_samples = Specifies how many data points are sampled</span>
+<span class="sd">    seed        = Specifies the random number generator&#39;s</span>
+<span class="sd">                  so that the results are repeatable and</span>
+<span class="sd">                  seed reproducable</span>
+<span class="sd">    pi_collection_rate = The amount of iterations between</span>
+<span class="sd">                  storing the current value of pi</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Sets the RNG&#39;s seed</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="c1"># Sets the initial amount of points in the circle to 0</span>
+    <span class="n">num_in_circle</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_samples</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># Checks if the randomly generated 2d point is inside</span>
+        <span class="c1"># the unit circle finding the magnitude of the vector</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">num_in_circle</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">pi</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">num_in_circle</span> <span class="o">/</span> <span class="n">num_samples</span>
+
+    <span class="k">return</span> <span class="n">pi</span></div>
+
+
+
+<div class="viewcode-block" id="display_difference">
+<a class="viewcode-back" href="../api/index.html#calculating_pi_serial.display_difference">[docs]</a>
+<span class="k">def</span> <span class="nf">display_difference</span><span class="p">(</span><span class="n">original_value</span><span class="p">,</span> <span class="n">new_value</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">new_value</span> <span class="o">-</span> <span class="n">original_value</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Absolute difference   = </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">percentage_diff</span> <span class="o">=</span> <span class="n">diff</span> <span class="o">/</span> <span class="n">original_value</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Percentage difference = </span><span class="si">{</span><span class="n">percentage_diff</span><span class="si">:</span><span class="s2">.5%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="output_results">
+<a class="viewcode-back" href="../api/index.html#calculating_pi_serial.output_results">[docs]</a>
+<span class="k">def</span> <span class="nf">output_results</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">tilde_length</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculating pi using a Monte-Carlo approach:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;~&quot;</span> <span class="o">*</span> <span class="n">tilde_length</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initial variables:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max number of samples = </span><span class="si">{</span><span class="n">num_samples</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RNG seed              = </span><span class="si">{</span><span class="n">seed</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;~&quot;</span> <span class="o">*</span> <span class="n">tilde_length</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Actual value of pi = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final calculated value of pi = </span><span class="si">{</span><span class="n">pi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Difference between pi and calculated value of pi:&quot;</span><span class="p">)</span>
+    <span class="n">display_difference</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">pi</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;~&quot;</span> <span class="o">*</span> <span class="n">tilde_length</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Test_Pi_Calculation">
+<a class="viewcode-back" href="../api/index.html#calculating_pi_serial.Test_Pi_Calculation">[docs]</a>
+<span class="k">class</span> <span class="nc">Test_Pi_Calculation</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class contains the unit tests</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Test_Pi_Calculation.test_calc_pi_basic">
+<a class="viewcode-back" href="../api/index.html#calculating_pi_serial.Test_Pi_Calculation.test_calc_pi_basic">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_calc_pi_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A basic test to see that the returned values of pi</span>
+<span class="sd">        are outputting values in the expected range</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">calc_pi</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="mf">2.5</span> <span class="o">&lt;</span> <span class="n">pi</span> <span class="o">&lt;</span> <span class="mf">4.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Test_Pi_Calculation.test_calc_pi_with_seed">
+<a class="viewcode-back" href="../api/index.html#calculating_pi_serial.Test_Pi_Calculation.test_calc_pi_with_seed">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_calc_pi_with_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tests that calc_pi returns consistent results with same seed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pi1</span> <span class="o">=</span> <span class="n">calc_pi</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
+        <span class="n">pi2</span> <span class="o">=</span> <span class="n">calc_pi</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">pi1</span><span class="p">,</span> <span class="n">pi2</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inputs:</span>
+<span class="sd">    num_samples = Specifies how many data points are sampled.</span>
+<span class="sd">    seed        = Specifies the random number generator&#39;s seed</span>
+<span class="sd">                  so that the results are repeatable and</span>
+<span class="sd">                  reproducable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_samples</span> <span class="o">=</span> <span class="mf">1e5</span>
+    <span class="n">seed</span> <span class="o">=</span> <span class="mi">12345</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">pi</span> <span class="o">=</span> <span class="n">calc_pi</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Elapsed = </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Outputs the results to the console</span>
+    <span class="n">output_results</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+
+    <span class="c1"># Run the unit tests</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Running unit tests...&quot;</span><span class="p">)</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+
+    <span class="c1"># Alternative unittest syntaxes #</span>
+
+    <span class="c1"># unittest.main(argv=[&#39;first-arg-is-ignored&#39;], exit=False)</span>
+
+    <span class="c1"># runner = unittest.TextTestRunner()</span>
+    <span class="c1"># suite = unittest.TestLoader().loadTestsFromTestCase(Test_Pi_Calculation)</span>
+    <span class="c1"># runner.run(suite)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ben-Folkard.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
