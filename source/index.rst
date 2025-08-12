@@ -9,6 +9,8 @@
 
 Monte-Carlo-pi documentation
 ============================
+https://github.com/Ben-Folkard/Monte-Carlo-pi
+
 Overview
 --------
 Estimating π via Monte Carlo sampling and then experimenting with way of parallising it.
